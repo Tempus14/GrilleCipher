@@ -1,6 +1,8 @@
 # GrilleCipher
 A python script to create grille-type word puzzles.  
-In the python script, you can specify words to be put into your puzzle. The according letters will then be mixed into a grid of random letters. To once again find the words, a mask for each word is created. You can cut out the mask and overlay it on the grid to reveal the letters. This makes for a fun puzzle. 
+In the python script, you can specify words to be put into your puzzle. The according letters will then be mixed into a grid of random letters. To once again find the words, a mask for each word is created.  
+This is meant as a print template. You print out the grid and the corresponding masks.
+After you cut out the mask you can overlay it on the grid to reveal the letters. This makes for a fun puzzle. 
 
 ![alt text](https://github.com/Tempus14/GrilleCipher/blob/main/example_solution.svg?raw=true)
 
