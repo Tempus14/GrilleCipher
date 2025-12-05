@@ -31,6 +31,9 @@ RANDOM_SEED = None                     # e.g. 1337 for reproducible puzzles
 # If True: use the legacy grayscale/filled SVG variant (`save_mask_svg`).
 GRAYSCALE_SVG = False
 
+# Cricut bounding box mode: "precise" (tight) or "frame" (adds margin)
+CRICUT_BOUNDING_BOX_MODE = "precise"  # or "frame"
+
 
 # ============================================================
 #   Helper functions
@@ -217,7 +220,8 @@ def save_masks_for_cricut(masks, size, base_filename):
     - Holes are red, unfilled rectangles (strokes) — so red paths can be
       assigned to 'Cut' and black paths to 'Draw' inside Cricut Design
       Space.
-    - Outer square cutout (red stroke) for the entire grid boundary.
+    - Outer square cutout (red stroke) for the entire grid boundary, with optional frame.
+    - Two layers: grid (draw, black) and cut (holes + bounding box, red).
     """
     cell_mm = CELL_SIZE_MM
     margin_mm = MARGIN_MM
@@ -229,19 +233,11 @@ def save_masks_for_cricut(masks, size, base_filename):
         svg = [
             '<?xml version="1.0" encoding="UTF-8"?>',
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width_mm}mm" height="{height_mm}mm" viewBox="0 0 {width_mm} {height_mm}">',
-            '<!-- Cricut-ready SVG: black strokes = raster (draw), red strokes = cut -->',
-            f'<rect width="100%" height="100%" fill="white"/>',
+            '<!-- Cricut-ready SVG: black = draw layer, red = cut layer -->',
         ]
 
-        # draw outer square cutout (red stroke) for the entire grid boundary
-        outer_x = margin_mm
-        outer_y = margin_mm
-        outer_size = size * cell_mm
-        svg.append(
-            f'<rect x="{outer_x}" y="{outer_y}" width="{outer_size}" height="{outer_size}" fill="none" stroke="#FF0000" stroke-width="0.8"/>'
-        )
-
-        # draw grid cells as thin stroked rectangles (draw)
+        # Layer 1: grid lines (draw, black)
+        svg.append('<g id="draw-layer">')
         for r in range(size):
             for c in range(size):
                 x = margin_mm + c * cell_mm
@@ -249,7 +245,10 @@ def save_masks_for_cricut(masks, size, base_filename):
                 svg.append(
                     f'<rect x="{x}" y="{y}" width="{cell_mm}" height="{cell_mm}" fill="none" stroke="black" stroke-width="0.2"/>'
                 )
+        svg.append('</g>')
 
+        # Layer 2: cut lines (holes + bounding box, red)
+        svg.append('<g id="cut-layer">')
         # draw cut rectangles for the holes (red stroke, no fill)
         for (r, c) in sorted(mask, key=lambda p: (p[0], p[1])):
             x = margin_mm + c * cell_mm
@@ -257,6 +256,20 @@ def save_masks_for_cricut(masks, size, base_filename):
             svg.append(
                 f'<rect x="{x}" y="{y}" width="{cell_mm}" height="{cell_mm}" fill="none" stroke="#FF0000" stroke-width="0.8"/>'
             )
+        # draw outer bounding box (red stroke)
+        if CRICUT_BOUNDING_BOX_MODE == "frame":
+            frame_margin = cell_mm * 0.5  # 0.5 cell extra frame
+            outer_x = margin_mm - frame_margin
+            outer_y = margin_mm - frame_margin
+            outer_size = size * cell_mm + 2 * frame_margin
+        else:
+            outer_x = margin_mm
+            outer_y = margin_mm
+            outer_size = size * cell_mm
+        svg.append(
+            f'<rect x="{outer_x}" y="{outer_y}" width="{outer_size}" height="{outer_size}" fill="none" stroke="#FF0000" stroke-width="0.8"/>'
+        )
+        svg.append('</g>')
 
         svg.append('</svg>')
 
