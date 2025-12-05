@@ -203,6 +203,7 @@ def save_masks_for_cricut(masks, size, base_filename):
     - Holes are red, unfilled rectangles (strokes) — so red paths can be
       assigned to 'Cut' and black paths to 'Draw' inside Cricut Design
       Space.
+    - Outer square cutout (red stroke) for the entire grid boundary.
     """
     cell_mm = CELL_SIZE_MM
     margin_mm = MARGIN_MM
@@ -217,6 +218,14 @@ def save_masks_for_cricut(masks, size, base_filename):
             '<!-- Cricut-ready SVG: black strokes = raster (draw), red strokes = cut -->',
             f'<rect width="100%" height="100%" fill="white"/>',
         ]
+
+        # draw outer square cutout (red stroke) for the entire grid boundary
+        outer_x = margin_mm
+        outer_y = margin_mm
+        outer_size = size * cell_mm
+        svg.append(
+            f'<rect x="{outer_x}" y="{outer_y}" width="{outer_size}" height="{outer_size}" fill="none" stroke="#FF0000" stroke-width="0.8"/>'
+        )
 
         # draw grid cells as thin stroked rectangles (draw)
         for r in range(size):
