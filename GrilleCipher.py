@@ -122,7 +122,7 @@ def save_grid_pdf(grid, filename):
     for r in range(size):
         for col in range(size):
             x = margin + col * cell
-            y = height - margin - r * cell
+            y = height - margin - (r + 1) * cell  # bottom-left corner of cell
             c.setFont("Helvetica", FONT_SIZE)
             # center the letter inside the cell
             text = grid[r][col]
@@ -130,6 +130,13 @@ def save_grid_pdf(grid, filename):
             tx = x + (cell - text_w) / 2
             ty = y + (cell - FONT_SIZE) / 2
             c.drawString(tx, ty, text)
+
+    # Draw outer frame on top
+    outer_size = size * cell
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(1)
+    # Bottom-left corner is at height - margin - size * cell
+    c.rect(margin, height - margin - size * cell, outer_size, outer_size, fill=False, stroke=True)
 
     c.save()
 
@@ -144,7 +151,7 @@ def save_mask_pdf(mask, size, filename):
     for r in range(size):
         for col in range(size):
             x = margin + col * cell
-            y = height - margin - r * cell
+            y = height - margin - (r + 1) * cell  # bottom-left corner of cell
 
             # Interpret `mask` as the set of hole positions. Draw non-mask
             # cells as filled (material) and mask cells as transparent/
@@ -158,6 +165,13 @@ def save_mask_pdf(mask, size, filename):
                 c.setFillGray(0.85)  # material
                 c.setStrokeColorRGB(0, 0, 0)
                 c.rect(x, y, cell, cell, fill=True, stroke=True)
+
+    # Draw outer frame on top
+    outer_size = size * cell
+    c.setStrokeColorRGB(0, 0, 0)
+    c.setLineWidth(2)
+    # Bottom-left corner is at height - margin - size * cell
+    c.rect(margin, height - margin - size * cell, outer_size, outer_size, fill=False, stroke=True)
 
     c.save()
 
